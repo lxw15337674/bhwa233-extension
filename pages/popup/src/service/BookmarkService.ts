@@ -1,4 +1,4 @@
-import { API_CONFIG } from '../config';
+import { API_CONFIG } from './config';
 import axios from 'axios';
 
 export interface Bookmark {
