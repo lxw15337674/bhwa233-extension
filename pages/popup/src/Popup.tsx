@@ -2,8 +2,20 @@ import '@src/Popup.css';
 import { BookmarkService } from './service/BookmarkService';
 import { withErrorBoundary, withSuspense } from '@extension/shared';
 import { cn, ErrorDisplay, LoadingSpinner } from '@extension/ui';
-import { Bookmark, BookmarkCheck, Trash2, Save, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { Bookmark, BookmarkCheck, Trash2, Save, Loader2, CheckCircle, XCircle, Image } from 'lucide-react';
 import { useEffect, useState } from 'react';
+
+interface ArticleImage {
+  src: string;
+  alt: string;
+  score: number;
+  position: string;
+  dimensions: {
+    width: number;
+    height: number;
+  };
+  format: string;
+}
 
 const Popup = () => {
   const [currentUrl, setCurrentUrl] = useState<string>('');
@@ -13,7 +25,9 @@ const Popup = () => {
   const [updatedAt, setUpdatedAt] = useState<string | undefined>();
   const [loading, setLoading] = useState<boolean>(false);
   const [operationStatus, setOperationStatus] = useState<'idle' | 'success' | 'error'>('idle');
-  // Removed status state
+  const [articleImages, setArticleImages] = useState<ArticleImage[]>([]);
+  const [imagesLoading, setImagesLoading] = useState<boolean>(true);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   // Get current tab info when popup opens
   useEffect(() => {
@@ -22,6 +36,10 @@ const Popup = () => {
       if (tab?.url && tab?.title) {
         setCurrentUrl(tab.url);
         setCurrentTitle(tab.title);
+
+        // 同时提取文章图片
+        extractArticleImages(tab.id);
+
         try {
           const bookmark = await BookmarkService.getBookmark(tab.url);
           if (bookmark) {
@@ -37,6 +55,36 @@ const Popup = () => {
 
     getCurrentTabInfo();
   }, []);
+
+  // Extract article images from current page
+  const extractArticleImages = async (tabId: number | undefined) => {
+    if (!tabId) return;
+
+    setImagesLoading(true);
+    try {
+      const response = await chrome.tabs.sendMessage(tabId, {
+        action: 'extractArticleImages',
+      });
+
+      if (response?.success && response.images) {
+        console.log('收到文章图片:', response.images);
+        setArticleImages(response.images);
+        // 自动选择第一张图片
+        if (response.images.length > 0) {
+          setSelectedImage(response.images[0].src);
+        }
+      } else {
+        console.log('未提取到文章图片:', response?.error);
+        setArticleImages([]);
+        setSelectedImage(null);
+      }
+    } catch (error) {
+      console.error('图片提取失败:', error);
+      setArticleImages([]);
+    } finally {
+      setImagesLoading(false);
+    }
+  };
 
   // Reset operation status after 2 seconds
   useEffect(() => {
@@ -56,6 +104,7 @@ const Popup = () => {
         url: currentUrl,
         title: currentTitle,
         remark,
+        image: selectedImage,
       });
       setIsBookmarked(true);
 
@@ -117,6 +166,74 @@ const Popup = () => {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Article Images */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Image className="text-muted-foreground h-4 w-4" />
+            <span className="text-foreground text-sm font-medium dark:text-white">文章配图</span>
+            {selectedImage && (
+              <span className="text-muted-foreground ml-auto text-xs">
+                已选择 {articleImages.findIndex(img => img.src === selectedImage) + 1}/{articleImages.length}
+              </span>
+            )}
+          </div>
+
+          {imagesLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
+              <span className="text-muted-foreground ml-2 text-sm">正在提取图片...</span>
+            </div>
+          ) : articleImages.length > 0 ? (
+            <div className="grid grid-cols-3 gap-2">
+              {articleImages.slice(0, 6).map((image, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => setSelectedImage(image.src)}
+                  className={cn(
+                    'bg-muted group relative aspect-square cursor-pointer overflow-hidden rounded-md border-2 transition-all duration-200',
+                    selectedImage === image.src
+                      ? 'z-10 scale-105 transform border-blue-500 shadow-xl ring-4 ring-blue-500/30'
+                      : 'border-transparent hover:scale-[1.02] hover:border-blue-300 hover:shadow-md',
+                  )}
+                  title={`${image.alt || '无描述'} (${Math.round(image.score)}分)`}>
+                  <img
+                    src={image.src}
+                    alt={image.alt || '文章图片'}
+                    className={cn(
+                      'h-full w-full object-cover transition-all duration-200',
+                      selectedImage === image.src ? 'brightness-110' : 'group-hover:scale-105',
+                    )}
+                    onError={e => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                    }}
+                  />
+                  {index === 0 && (
+                    <div className="bg-primary text-primary-foreground absolute left-1 top-1 rounded px-1.5 py-0.5 text-xs font-medium">
+                      推荐
+                    </div>
+                  )}
+                  {selectedImage === image.src && (
+                    <>
+                      <div className="absolute inset-0 rounded-md border border-blue-500" />
+                    </>
+                  )}
+                  <div className="absolute bottom-1 right-1 rounded bg-black/50 px-1 py-0.5 text-xs text-white">
+                    {Math.round(image.score)}
+                  </div>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <Image className="text-muted-foreground/50 h-12 w-12" />
+              <p className="text-muted-foreground mt-2 text-sm">未找到文章图片</p>
+              <p className="text-muted-foreground/70 text-xs">当前页面可能不包含合适的图片内容</p>
+            </div>
+          )}
         </div>
 
         {/* Notes Input */}

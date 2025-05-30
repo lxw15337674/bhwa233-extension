@@ -40,12 +40,14 @@ export class BookmarkService {
       url: bookmarkData.url,
       title: bookmarkData.title,
       remark: bookmarkData.remark || '',
+      image: bookmarkData.image || null,
     };
 
     console.log('准备发送书签数据到API:', {
       url: newBookmark.url,
       title: newBookmark.title,
       remark: newBookmark.remark,
+      image: newBookmark.image,
     });
 
     try {
