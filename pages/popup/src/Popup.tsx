@@ -3,6 +3,14 @@ import { BookmarkService } from './service/BookmarkService';
 import { withErrorBoundary, withSuspense } from '@extension/shared';
 import { cn, ErrorDisplay, LoadingSpinner } from '@extension/ui';
 import { useEffect, useState } from 'react';
+import {
+  Bookmark,
+  BookmarkCheck,
+  Trash2,
+  Save,
+  Loader2,
+  CheckCircle,
+  XCircle} from 'lucide-react';
 
 const Popup = () => {
   const [currentUrl, setCurrentUrl] = useState<string>('');
@@ -21,9 +29,6 @@ const Popup = () => {
       if (tab?.url && tab?.title) {
         setCurrentUrl(tab.url);
         setCurrentTitle(tab.title);
-
-        // Check if URL is already bookmarked
-        setLoading(true);
         try {
           const bookmark = await BookmarkService.getBookmark(tab.url);
           if (bookmark) {
@@ -33,8 +38,6 @@ const Popup = () => {
           }
         } catch (error) {
           console.error('Error checking bookmark status:', error);
-        } finally {
-          setLoading(false);
         }
       }
     };
@@ -57,25 +60,12 @@ const Popup = () => {
 
     try {
       let result;
-
-      if (isBookmarked) {
-        // 对于更新，我们需要先删除旧的书签，然后创建新的
-        // 因为新API不支持基于ID的更新，只能通过URL操作
-        await BookmarkService.removeBookmark(currentUrl);
-        result = await BookmarkService.addBookmark({
-          url: currentUrl,
-          title: currentTitle,
-          remark,
-        });
-      } else {
-        // Create new bookmark
-        result = await BookmarkService.addBookmark({
-          url: currentUrl,
-          title: currentTitle,
-          remark,
-        });
-        setIsBookmarked(true);
-      }
+      result = await BookmarkService.addBookmark({
+        url: currentUrl,
+        title: currentTitle,
+        remark,
+      });
+      setIsBookmarked(true);
 
       if (result) {
         setUpdatedAt(result.updateTime);
@@ -108,83 +98,94 @@ const Popup = () => {
   };
 
   return (
-    <div className="App flex-col bg-gray-800 p-4">
-      <main className="flex flex-1 flex-col">
-        {/* Page Title */}
-        <div className="mb-4 rounded-lg border border-gray-600 bg-gray-700 p-3">
-          <div className="flex items-start space-x-3">
-            <div className="min-w-0 flex-1">
-              <h1 className="font-semibold leading-tight text-gray-200">
-                <span className="line-clamp-2" title={currentTitle}>
-                  {currentTitle || '无标题'}
+    <div className="App flex-col bg-background p-6 dark:bg-black dark:text-white">
+      <main className="flex flex-1 flex-col space-y-6">
+        {/* Page Title & Bookmark Status */}
+        <div className="rounded-lg border bg-card p-4 shadow-sm transition-all duration-200 hover:shadow-md dark:bg-[#18181b] dark:border-[#232329] dark:text-white">
+          <div className="flex flex-col gap-2">
+            <h2 className="font-semibold leading-tight text-foreground text-base dark:text-white line-clamp-2" title={currentTitle}>
+              {currentTitle || '无标题'}
+            </h2>
+            <p className="text-muted-foreground text-xs truncate dark:text-white/60">
+              {currentUrl}
+            </p>
+            {isBookmarked && updatedAt && (
+              <div className="flex items-center gap-2 mt-1">
+                <BookmarkCheck className="w-4 h-4 text-green-600 dark:text-green-400" />
+                <span className="text-green-600 dark:text-green-400 text-xs">
+                  {new Date(updatedAt).toLocaleString()}
                 </span>
-              </h1>
-            </div>
+                <button
+                  onClick={handleDeleteBookmark}
+                  disabled={loading}
+                  className="flex items-center space-x-1 rounded-md px-2 py-1 text-xs text-destructive hover:bg-destructive/10 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed dark:text-red-400 dark:hover:bg-red-900/30 ml-auto">
+                  <Trash2 className="w-3 h-3" />
+                  <span>删除</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Bookmark Status */}
-        {isBookmarked && (
-          <div className="mb-4 rounded bg-gray-700 p-2">
-            <div className="flex items-center justify-between">
-              <span className="truncate text-xs text-blue-300">
-                {updatedAt ? '最后更新: ' + new Date(updatedAt).toLocaleString() : '已收藏'}
-              </span>
-              <button
-                onClick={handleDeleteBookmark}
-                disabled={loading}
-                className="rounded px-2 py-1 text-xs text-red-400 hover:bg-gray-600">
-                删除
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* Notes Input */}
-        <div className="mb-4">
-          <label htmlFor="remark" className="mb-1 block text-sm font-medium text-gray-300">
-            备注
-          </label>
+        <div className="space-y-3">
           <textarea
             id="remark"
             value={remark}
             onChange={e => setRemark(e.target.value)}
             placeholder="在此输入备注信息..."
             rows={3}
-            className="w-full rounded border border-gray-600 bg-gray-700 p-2 focus:outline-none focus:ring-2 focus:ring-blue-700"
+            className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none dark:bg-[#18181b] dark:text-white dark:placeholder:text-white/40"
             disabled={loading}
           />
         </div>
 
         {/* Action Button */}
-        <div className="mt-4">
+        <div>
           <button
             onClick={handleSaveBookmark}
             disabled={loading}
             className={cn(
-              'w-full rounded px-4 py-2 font-medium transition-colors duration-200',
+              'inline-flex w-full items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 space-x-2',
               // Base styles based on bookmark status
               isBookmarked
-                ? 'border border-blue-500 text-blue-400 hover:bg-gray-700'
-                : 'bg-blue-600 text-white hover:bg-blue-700',
-              // Loading state
-              loading && 'cursor-not-allowed opacity-50',
+                ? 'border border-input bg-background hover:bg-accent hover:text-accent-foreground dark:bg-[#18181b] dark:text-white dark:border-[#232329] dark:hover:bg-[#232329]'
+                : 'bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-white dark:text-black',
               // Success state
               operationStatus === 'success' &&
-                !loading &&
-                'border-green-600 bg-green-600 text-white hover:bg-green-700',
+              !loading &&
+              'bg-green-600 text-white hover:bg-green-700',
               // Error state
-              operationStatus === 'error' && !loading && 'border-red-600 bg-red-600 text-white hover:bg-red-700',
+              operationStatus === 'error' &&
+              !loading &&
+              'bg-destructive text-destructive-foreground hover:bg-destructive/90',
             )}>
-            {loading
-              ? '操作中...'
-              : operationStatus === 'success'
-                ? '操作成功'
-                : operationStatus === 'error'
-                  ? '操作失败'
-                  : isBookmarked
-                    ? '更新书签'
-                    : '保存为书签'}
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>操作中...</span>
+              </>
+            ) : operationStatus === 'success' ? (
+              <>
+                <CheckCircle className="w-4 h-4" />
+                <span>操作成功</span>
+              </>
+            ) : operationStatus === 'error' ? (
+              <>
+                <XCircle className="w-4 h-4" />
+                <span>操作失败</span>
+              </>
+            ) : isBookmarked ? (
+              <>
+                <Save className="w-4 h-4" />
+                <span>更新书签</span>
+              </>
+            ) : (
+              <>
+                <Bookmark className="w-4 h-4" />
+                <span>保存为书签</span>
+              </>
+            )}
           </button>
         </div>
       </main>
