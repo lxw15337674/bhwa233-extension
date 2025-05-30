@@ -19,18 +19,17 @@
     "type-check": "turbo type-check",
     "base-build": "pnpm clean:bundle && turbo build",
     "build": "pnpm set-global-env && pnpm base-build",
-    "build:firefox": "pnpm set-global-env CLI_CEB_FIREFOX=true && pnpm base-build",
+    
     "base-dev": "pnpm clean:bundle && turbo ready && turbo watch dev",
     "dev": "pnpm set-global-env CLI_CEB_DEV=true && pnpm base-dev",
-    "dev:firefox": "pnpm set-global-env CLI_CEB_DEV=true CLI_CEB_FIREFOX=true && pnpm base-dev",
+    
     "zip": "pnpm build && pnpm -F zipper zip",
-    "zip:firefox": "pnpm build:firefox && pnpm -F zipper zip",
+    
     "e2e": "pnpm zip && turbo e2e",
-    "e2e:firefox": "pnpm zip:firefox && turbo e2e",
+    
     "lint": "turbo lint --continue",
     "lint:fix": "turbo lint:fix --continue",
     "format": "turbo format --continue -- --cache --cache-location node_modules/.cache/.prettiercache",
-    "prepare": "husky",
     "update-version": "bash bash-scripts/update_version.sh",
     "copy-env": "bash bash-scripts/copy_env.sh",
     "set-global-env": "bash bash-scripts/set_global_env.sh",
@@ -66,7 +65,6 @@
     "fast-glob": "^3.3.3",
     "fflate": "^0.8.2",
     "globals": "^16.1.0",
-    "husky": "^9.1.7",
     "jiti": "^2.4.2",
     "lint-staged": "^16.0.0",
     "postcss": "^8.5.3",
@@ -83,12 +81,6 @@
     "typescript-eslint": "^8.32.1",
     "vite": "^6.3.5",
     "vite-plugin-node-polyfills": "^0.23.0"
-  },
-  "lint-staged": {
-    "*.{js,jsx,ts,tsx,json}": [
-      "prettier --write",
-      "eslint --fix"
-    ]
   },
   "packageManager": "pnpm@10.11.0",
   "engines": {
