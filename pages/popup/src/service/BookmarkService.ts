@@ -6,8 +6,8 @@ export interface Bookmark {
   url: string;
   title: string | null;
   remark: string;
-  summary: string | null;
-  image: string | null;
+  summary?: string | null;
+  image?: string | null;
   createTime: string;
   updateTime: string;
 }

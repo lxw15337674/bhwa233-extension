@@ -52,8 +52,7 @@ const Popup = () => {
     setOperationStatus('idle');
 
     try {
-      let result;
-      result = await BookmarkService.addBookmark({
+      const result = await BookmarkService.addBookmark({
         url: currentUrl,
         title: currentTitle,
         remark,
