@@ -12,6 +12,8 @@ export interface Bookmark {
   updateTime: string;
 }
 
+export type NewBookmark = Omit<Bookmark, 'id' | 'createTime' | 'updateTime'>;
+
 export class BookmarkService {
   // 获取单个书签 - 仅通过URL查询
   static async getBookmark(url: string): Promise<Bookmark | null> {
@@ -33,7 +35,7 @@ export class BookmarkService {
   }
 
   // 添加新书签
-  static async addBookmark(bookmarkData: { url: string; title: string; remark?: string }): Promise<Bookmark> {
+  static async addBookmark(bookmarkData: NewBookmark): Promise<Bookmark> {
     const newBookmark = {
       url: bookmarkData.url,
       title: bookmarkData.title,
