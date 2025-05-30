@@ -1,6 +1,6 @@
 export const API_CONFIG = {
-  // API_URL: 'https://bhwa233.vercel.app/api/bookmark', // 替换为实际 API 地址
-  API_URL: 'http://localhost:3000/api/bookmark', // 替换为实际 API 地址
+  API_URL: 'https://bhwa233.vercel.app/api/bookmark', // 替换为实际 API 地址
+  // API_URL: 'http://localhost:3000/api/bookmark', // 替换为实际 API 地址
   API_HEADERS: {
     'Content-Type': 'application/json',
     'X-API-KEY': 'f8+rasA6QIIujKev8iIvBqGslG4LsE1iMXalXREbo/g=', // 自定义API密钥
