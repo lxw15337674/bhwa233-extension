@@ -2,15 +2,8 @@ import '@src/Popup.css';
 import { BookmarkService } from './service/BookmarkService';
 import { withErrorBoundary, withSuspense } from '@extension/shared';
 import { cn, ErrorDisplay, LoadingSpinner } from '@extension/ui';
+import { Bookmark, BookmarkCheck, Trash2, Save, Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import {
-  Bookmark,
-  BookmarkCheck,
-  Trash2,
-  Save,
-  Loader2,
-  CheckCircle,
-  XCircle} from 'lucide-react';
 
 const Popup = () => {
   const [currentUrl, setCurrentUrl] = useState<string>('');
@@ -98,28 +91,28 @@ const Popup = () => {
   };
 
   return (
-    <div className="App flex-col bg-background p-6 dark:bg-black dark:text-white">
+    <div className="App bg-background flex-col p-6 dark:bg-black dark:text-white">
       <main className="flex flex-1 flex-col space-y-6">
         {/* Page Title & Bookmark Status */}
-        <div className="rounded-lg border bg-card p-4 shadow-sm transition-all duration-200 hover:shadow-md dark:bg-[#18181b] dark:border-[#232329] dark:text-white">
+        <div className="bg-card rounded-lg border p-4 shadow-sm transition-all duration-200 hover:shadow-md dark:border-[#232329] dark:bg-[#18181b] dark:text-white">
           <div className="flex flex-col gap-2">
-            <h2 className="font-semibold leading-tight text-foreground text-base dark:text-white line-clamp-2" title={currentTitle}>
+            <h2
+              className="text-foreground line-clamp-2 text-base font-semibold leading-tight dark:text-white"
+              title={currentTitle}>
               {currentTitle || '无标题'}
             </h2>
-            <p className="text-muted-foreground text-xs truncate dark:text-white/60">
-              {currentUrl}
-            </p>
+            <p className="text-muted-foreground truncate text-xs dark:text-white/60">{currentUrl}</p>
             {isBookmarked && updatedAt && (
-              <div className="flex items-center gap-2 mt-1">
-                <BookmarkCheck className="w-4 h-4 text-green-600 dark:text-green-400" />
-                <span className="text-green-600 dark:text-green-400 text-xs">
+              <div className="mt-1 flex items-center gap-2">
+                <BookmarkCheck className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <span className="text-xs text-green-600 dark:text-green-400">
                   {new Date(updatedAt).toLocaleString()}
                 </span>
                 <button
                   onClick={handleDeleteBookmark}
                   disabled={loading}
-                  className="flex items-center space-x-1 rounded-md px-2 py-1 text-xs text-destructive hover:bg-destructive/10 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed dark:text-red-400 dark:hover:bg-red-900/30 ml-auto">
-                  <Trash2 className="w-3 h-3" />
+                  className="text-destructive hover:bg-destructive/10 ml-auto flex items-center space-x-1 rounded-md px-2 py-1 text-xs transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-900/30">
+                  <Trash2 className="h-3 w-3" />
                   <span>删除</span>
                 </button>
               </div>
@@ -135,7 +128,7 @@ const Popup = () => {
             onChange={e => setRemark(e.target.value)}
             placeholder="在此输入备注信息..."
             rows={3}
-            className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none dark:bg-[#18181b] dark:text-white dark:placeholder:text-white/40"
+            className="border-input bg-background text-foreground placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[80px] w-full resize-none rounded-md border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#18181b] dark:text-white dark:placeholder:text-white/40"
             disabled={loading}
           />
         </div>
@@ -146,43 +139,41 @@ const Popup = () => {
             onClick={handleSaveBookmark}
             disabled={loading}
             className={cn(
-              'inline-flex w-full items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 space-x-2',
+              'ring-offset-background focus-visible:ring-ring inline-flex h-10 w-full items-center justify-center space-x-2 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
               // Base styles based on bookmark status
               isBookmarked
-                ? 'border border-input bg-background hover:bg-accent hover:text-accent-foreground dark:bg-[#18181b] dark:text-white dark:border-[#232329] dark:hover:bg-[#232329]'
+                ? 'border-input bg-background hover:bg-accent hover:text-accent-foreground border dark:border-[#232329] dark:bg-[#18181b] dark:text-white dark:hover:bg-[#232329]'
                 : 'bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-white dark:text-black',
               // Success state
-              operationStatus === 'success' &&
-              !loading &&
-              'bg-green-600 text-white hover:bg-green-700',
+              operationStatus === 'success' && !loading && 'bg-green-600 text-white hover:bg-green-700',
               // Error state
               operationStatus === 'error' &&
-              !loading &&
-              'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+                !loading &&
+                'bg-destructive text-destructive-foreground hover:bg-destructive/90',
             )}>
             {loading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 <span>操作中...</span>
               </>
             ) : operationStatus === 'success' ? (
               <>
-                <CheckCircle className="w-4 h-4" />
+                <CheckCircle className="h-4 w-4" />
                 <span>操作成功</span>
               </>
             ) : operationStatus === 'error' ? (
               <>
-                <XCircle className="w-4 h-4" />
+                <XCircle className="h-4 w-4" />
                 <span>操作失败</span>
               </>
             ) : isBookmarked ? (
               <>
-                <Save className="w-4 h-4" />
+                <Save className="h-4 w-4" />
                 <span>更新书签</span>
               </>
             ) : (
               <>
-                <Bookmark className="w-4 h-4" />
+                <Bookmark className="h-4 w-4" />
                 <span>保存为书签</span>
               </>
             )}
