@@ -1,8 +1,9 @@
 import '@src/Popup.css';
 import { BookmarkService } from './service/BookmarkService';
+import { uploadToGallery } from './service/upload';
 import { withErrorBoundary, withSuspense } from '@extension/shared';
 import { cn, ErrorDisplay, LoadingSpinner } from '@extension/ui';
-import { Bookmark, BookmarkCheck, Trash2, Save, Loader2, CheckCircle, XCircle, Image } from 'lucide-react';
+import { Bookmark, BookmarkCheck, Trash2, Save, Loader2, CheckCircle, XCircle, Image, Upload } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface ArticleImage {
@@ -25,6 +26,7 @@ const Popup = () => {
   const [updatedAt, setUpdatedAt] = useState<string | undefined>();
   const [loading, setLoading] = useState<boolean>(false);
   const [operationStatus, setOperationStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [uploadingImage, setUploadingImage] = useState<boolean>(false);
   const [articleImages, setArticleImages] = useState<ArticleImage[]>([]);
   const [imagesLoading, setImagesLoading] = useState<boolean>(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -100,11 +102,35 @@ const Popup = () => {
     setOperationStatus('idle');
 
     try {
+      let finalImageUrl = selectedImage;
+
+      // 如果选择了图片，先上传到gallery服务器
+      if (selectedImage) {
+        console.log('开始上传图片到gallery:', selectedImage);
+        setUploadingImage(true);
+
+        try {
+          const uploadedImageUrl = await uploadToGallery(selectedImage);
+          if (uploadedImageUrl) {
+            console.log('图片上传成功:', uploadedImageUrl);
+            finalImageUrl = uploadedImageUrl;
+          } else {
+            console.warn('图片上传失败，使用原始URL');
+            // 如果上传失败，仍然使用原始图片URL
+          }
+        } catch (uploadError) {
+          console.error('图片上传出错:', uploadError);
+          // 上传失败时，仍然使用原始图片URL，不阻断书签保存
+        } finally {
+          setUploadingImage(false);
+        }
+      }
+
       const result = await BookmarkService.addBookmark({
         url: currentUrl,
         title: currentTitle,
         remark,
-        image: selectedImage,
+        image: finalImageUrl,
       });
       setIsBookmarked(true);
 
@@ -268,10 +294,17 @@ const Popup = () => {
                 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
             )}>
             {loading ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>操作中...</span>
-              </>
+              uploadingImage ? (
+                <>
+                  <Upload className="h-4 w-4 animate-pulse" />
+                  <span>正在上传图片...</span>
+                </>
+              ) : (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>保存中...</span>
+                </>
+              )
             ) : operationStatus === 'success' ? (
               <>
                 <CheckCircle className="h-4 w-4" />
