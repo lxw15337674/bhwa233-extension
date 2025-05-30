@@ -2,11 +2,14 @@ import { API_CONFIG } from '../config';
 import axios from 'axios';
 
 export interface Bookmark {
+  id: string;
   url: string;
-  title: string;
-  remark?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  title: string | null;
+  remark: string;
+  summary: string | null;
+  image: string | null;
+  createTime: string;
+  updateTime: string;
 }
 
 export class BookmarkService {
@@ -31,10 +34,10 @@ export class BookmarkService {
 
   // 添加新书签
   static async addBookmark(bookmarkData: { url: string; title: string; remark?: string }): Promise<Bookmark> {
-    const newBookmark: Bookmark = {
+    const newBookmark = {
       url: bookmarkData.url,
       title: bookmarkData.title,
-      remark: bookmarkData.remark,
+      remark: bookmarkData.remark || '',
     };
 
     console.log('准备发送书签数据到API:', {

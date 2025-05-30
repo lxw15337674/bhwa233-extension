@@ -1,13 +1,10 @@
 import '@src/Popup.css';
 import { BookmarkService } from './service/BookmarkService';
-import { useStorage, withErrorBoundary, withSuspense } from '@extension/shared';
-import { exampleThemeStorage } from '@extension/storage';
+import { withErrorBoundary, withSuspense } from '@extension/shared';
 import { cn, ErrorDisplay, LoadingSpinner } from '@extension/ui';
 import { useEffect, useState } from 'react';
 
 const Popup = () => {
-  const { isLight } = useStorage(exampleThemeStorage);
-
   const [currentUrl, setCurrentUrl] = useState<string>('');
   const [currentTitle, setCurrentTitle] = useState<string>('');
   const [remark, setRemark] = useState<string>('');
@@ -32,7 +29,7 @@ const Popup = () => {
           if (bookmark) {
             setIsBookmarked(true);
             setRemark(bookmark.remark || '');
-            setUpdatedAt(bookmark.updatedAt);
+            setUpdatedAt(bookmark.updateTime);
           }
         } catch (error) {
           console.error('Error checking bookmark status:', error);
@@ -81,7 +78,7 @@ const Popup = () => {
       }
 
       if (result) {
-        setUpdatedAt(result.updatedAt);
+        setUpdatedAt(result.updateTime);
         setOperationStatus('success');
       }
     } catch (error) {
@@ -111,36 +108,32 @@ const Popup = () => {
   };
 
   return (
-    <div className={cn('App flex-col p-4', isLight ? 'bg-slate-50' : 'bg-gray-800')}>
-      <header className={cn('mb-4 text-center', isLight ? 'text-gray-900' : 'text-gray-100')}>
-        <h1 className="text-lg font-bold">网页书签</h1>
-      </header>
-
+    <div className="App flex-col bg-gray-800 p-4">
       <main className="flex flex-1 flex-col">
         {/* Page Title */}
-        <div className="mb-4">
-          <h2 className={cn('truncate font-semibold', isLight ? 'text-gray-800' : 'text-gray-200')}>
-            {currentTitle || '无标题'}
-          </h2>
-          <p className={cn('truncate text-xs', isLight ? 'text-gray-500' : 'text-gray-400')}>
-            {currentUrl || '无 URL'}
-          </p>
+        <div className="mb-4 rounded-lg border border-gray-600 bg-gray-700 p-3">
+          <div className="flex items-start space-x-3">
+            <div className="min-w-0 flex-1">
+              <h1 className="font-semibold leading-tight text-gray-200">
+                <span className="line-clamp-2" title={currentTitle}>
+                  {currentTitle || '无标题'}
+                </span>
+              </h1>
+            </div>
+          </div>
         </div>
 
         {/* Bookmark Status */}
         {isBookmarked && (
-          <div className={cn('mb-4 rounded p-2', isLight ? 'bg-blue-50' : 'bg-gray-700')}>
+          <div className="mb-4 rounded bg-gray-700 p-2">
             <div className="flex items-center justify-between">
-              <span className={cn('truncate text-xs', isLight ? 'text-blue-700' : 'text-blue-300')}>
+              <span className="truncate text-xs text-blue-300">
                 {updatedAt ? '最后更新: ' + new Date(updatedAt).toLocaleString() : '已收藏'}
               </span>
               <button
                 onClick={handleDeleteBookmark}
                 disabled={loading}
-                className={cn(
-                  'rounded px-2 py-1 text-xs',
-                  isLight ? 'text-red-600 hover:bg-red-50' : 'text-red-400 hover:bg-gray-600',
-                )}>
+                className="rounded px-2 py-1 text-xs text-red-400 hover:bg-gray-600">
                 删除
               </button>
             </div>
@@ -149,9 +142,7 @@ const Popup = () => {
 
         {/* Notes Input */}
         <div className="mb-4">
-          <label
-            htmlFor="remark"
-            className={cn('mb-1 block text-sm font-medium', isLight ? 'text-gray-700' : 'text-gray-300')}>
+          <label htmlFor="remark" className="mb-1 block text-sm font-medium text-gray-300">
             备注
           </label>
           <textarea
@@ -160,12 +151,7 @@ const Popup = () => {
             onChange={e => setRemark(e.target.value)}
             placeholder="在此输入备注信息..."
             rows={3}
-            className={cn(
-              'w-full rounded border p-2 focus:outline-none focus:ring-2',
-              isLight
-                ? 'border-gray-300 bg-white focus:ring-blue-300'
-                : 'border-gray-600 bg-gray-700 focus:ring-blue-700',
-            )}
+            className="w-full rounded border border-gray-600 bg-gray-700 p-2 focus:outline-none focus:ring-2 focus:ring-blue-700"
             disabled={loading}
           />
         </div>
@@ -179,26 +165,16 @@ const Popup = () => {
               'w-full rounded px-4 py-2 font-medium transition-colors duration-200',
               // Base styles based on bookmark status
               isBookmarked
-                ? isLight
-                  ? 'border border-blue-500 text-blue-500 hover:bg-blue-50'
-                  : 'border border-blue-500 text-blue-400 hover:bg-gray-700'
-                : isLight
-                  ? 'bg-blue-500 text-white hover:bg-blue-600'
-                  : 'bg-blue-600 text-white hover:bg-blue-700',
+                ? 'border border-blue-500 text-blue-400 hover:bg-gray-700'
+                : 'bg-blue-600 text-white hover:bg-blue-700',
               // Loading state
               loading && 'cursor-not-allowed opacity-50',
               // Success state
               operationStatus === 'success' &&
                 !loading &&
-                (isLight
-                  ? 'border-green-500 bg-green-500 text-white hover:bg-green-600'
-                  : 'border-green-600 bg-green-600 text-white hover:bg-green-700'),
+                'border-green-600 bg-green-600 text-white hover:bg-green-700',
               // Error state
-              operationStatus === 'error' &&
-                !loading &&
-                (isLight
-                  ? 'border-red-500 bg-red-500 text-white hover:bg-red-600'
-                  : 'border-red-600 bg-red-600 text-white hover:bg-red-700'),
+              operationStatus === 'error' && !loading && 'border-red-600 bg-red-600 text-white hover:bg-red-700',
             )}>
             {loading
               ? '操作中...'
