@@ -24,14 +24,14 @@ const manifest = {
   name: '__MSG_extensionName__',
   browser_specific_settings: {
     gecko: {
-      id: 'example@example.com',
+      id: 'bhwa233-extension@bhwa233.dev',
       strict_min_version: '109.0',
     },
   },
   version: packageJson.version,
   description: '__MSG_extensionDescription__',
-  host_permissions: ['<all_urls>'],
-  permissions: ['storage', 'scripting', 'tabs', 'notifications'],
+  host_permissions: ['http://*/*', 'https://*/*'],
+  permissions: ['storage', 'scripting', 'tabs'],
   options_page: 'options/index.html',
   background: {
     service_worker: 'background.js',
@@ -46,23 +46,15 @@ const manifest = {
   },
   content_scripts: [
     {
-      matches: ['http://*/*', 'https://*/*', '<all_urls>'],
+      matches: ['http://*/*', 'https://*/*'],
       js: ['content/all.iife.js'],
     },
     {
-      matches: ['https://example.com/*'],
-      js: ['content/example.iife.js'],
-    },
-    {
-      matches: ['http://*/*', 'https://*/*', '<all_urls>'],
+      matches: ['http://*/*', 'https://*/*'],
       js: ['content-ui/all.iife.js'],
     },
     {
-      matches: ['https://example.com/*'],
-      js: ['content-ui/example.iife.js'],
-    },
-    {
-      matches: ['http://*/*', 'https://*/*', '<all_urls>'],
+      matches: ['http://*/*', 'https://*/*'],
       css: ['content.css'],
     },
   ],
