@@ -44,20 +44,20 @@ const manifest = {
   icons: {
     '128': 'icon-128.png',
   },
-  content_scripts: [
-    {
-      matches: ['http://*/*', 'https://*/*'],
-      js: ['content/all.iife.js'],
-    },
-    {
-      matches: ['http://*/*', 'https://*/*'],
-      js: ['content-ui/all.iife.js'],
-    },
-    {
-      matches: ['http://*/*', 'https://*/*'],
-      css: ['content.css'],
-    },
-  ],
+  // content_scripts: [
+  //   {
+  //     matches: ['http://*/*', 'https://*/*'],
+  //     js: ['content/all.iife.js'],
+  //   },
+  //   {
+  //     matches: ['http://*/*', 'https://*/*'],
+  //     js: ['content-ui/all.iife.js'],
+  //   },
+  //   {
+  //     matches: ['http://*/*', 'https://*/*'],
+  //     css: ['content.css'],
+  //   },
+  // ],
   devtools_page: 'devtools/index.html',
   web_accessible_resources: [
     {

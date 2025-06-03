@@ -52,3 +52,14 @@ export interface ThemeStateType {
 export type ThemeStorageType = BaseStorageType<ThemeStateType> & {
   toggle: () => Promise<void>;
 };
+
+export interface ExtensionConfigStateType {
+  apiUrl: string;
+  apiKey: string;
+}
+
+export type ExtensionConfigStorageType = BaseStorageType<ExtensionConfigStateType> & {
+  validateConfig: (config: Partial<ExtensionConfigStateType>) => boolean;
+  resetToDefaults: () => Promise<void>;
+  testConnection: () => Promise<{ success: boolean; message: string }>;
+};

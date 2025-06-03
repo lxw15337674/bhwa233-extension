@@ -1,4 +1,4 @@
-import { API_CONFIG } from './config';
+import { getApiConfig } from './config';
 import axios from 'axios';
 
 export interface Bookmark {
@@ -19,8 +19,9 @@ export class BookmarkService {
   static async getBookmark(url: string): Promise<Bookmark | null> {
     console.log('开始获取单个书签:', url);
     try {
-      const bookmark = await axios.get(`${API_CONFIG.API_URL}?url=${encodeURIComponent(url)}`, {
-        headers: API_CONFIG.API_HEADERS,
+      const config = await getApiConfig();
+      const bookmark = await axios.get(`${config.API_URL}?url=${encodeURIComponent(url)}`, {
+        headers: config.API_HEADERS,
       });
       if (bookmark.data) {
         console.log('获取到书签:', bookmark.data);
@@ -51,8 +52,9 @@ export class BookmarkService {
     });
 
     try {
-      const response = await axios.post(`${API_CONFIG.API_URL}`, newBookmark, {
-        headers: API_CONFIG.API_HEADERS,
+      const config = await getApiConfig();
+      const response = await axios.post(`${config.API_URL}`, newBookmark, {
+        headers: config.API_HEADERS,
       });
       console.log('API响应:', response.data);
       return response.data;
@@ -65,10 +67,11 @@ export class BookmarkService {
   // 删除书签 - 使用 URL 代替 ID
   static async removeBookmark(url: string): Promise<void> {
     try {
+      const config = await getApiConfig();
       // 将 URL 编码以便在请求路径中安全使用
       const encodedUrl = encodeURIComponent(url);
-      await axios.delete(`${API_CONFIG.API_URL}?url=${encodedUrl}`, {
-        headers: API_CONFIG.API_HEADERS,
+      await axios.delete(`${config.API_URL}?url=${encodedUrl}`, {
+        headers: config.API_HEADERS,
       });
     } catch (error) {
       console.error('删除书签失败:', error);
