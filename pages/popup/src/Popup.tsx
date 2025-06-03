@@ -3,8 +3,19 @@ import { BookmarkService } from './service/BookmarkService';
 import { uploadToGallery } from './service/upload';
 import { withErrorBoundary, withSuspense } from '@extension/shared';
 import { cn, ErrorDisplay, LoadingSpinner } from '@extension/ui';
-import { Bookmark, BookmarkCheck, Trash2, Save, Loader2, CheckCircle, XCircle, Image, Upload } from 'lucide-react';
+import {
+  Bookmark as BookmarkIcon,
+  BookmarkCheck,
+  Trash2,
+  Save,
+  Loader2,
+  CheckCircle,
+  XCircle,
+  Image,
+  Upload,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
+import type { Bookmark } from './service/BookmarkService';
 
 interface ArticleImage {
   src: string;
@@ -22,15 +33,13 @@ const Popup = () => {
   const [currentUrl, setCurrentUrl] = useState<string>('');
   const [currentTitle, setCurrentTitle] = useState<string>('');
   const [remark, setRemark] = useState<string>('');
-  const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
-  const [updatedAt, setUpdatedAt] = useState<string | undefined>();
   const [loading, setLoading] = useState<boolean>(false);
   const [operationStatus, setOperationStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [uploadingImage, setUploadingImage] = useState<boolean>(false);
   const [articleImages, setArticleImages] = useState<ArticleImage[]>([]);
   const [imagesLoading, setImagesLoading] = useState<boolean>(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-
+  const [existBookmark, setExistBookmark] = useState<Bookmark | null>(null);
   // Get current tab info when popup opens
   useEffect(() => {
     const getCurrentTabInfo = async () => {
@@ -45,9 +54,7 @@ const Popup = () => {
         try {
           const bookmark = await BookmarkService.getBookmark(tab.url);
           if (bookmark) {
-            setIsBookmarked(true);
-            setRemark(bookmark.remark || '');
-            setUpdatedAt(bookmark.updateTime);
+            setExistBookmark(bookmark);
           }
         } catch (error) {
           console.error('Error checking bookmark status:', error);
@@ -132,10 +139,9 @@ const Popup = () => {
         remark,
         image: finalImageUrl,
       });
-      setIsBookmarked(true);
 
       if (result) {
-        setUpdatedAt(result.updateTime);
+        setExistBookmark(result);
         setOperationStatus('success');
       }
     } catch (error) {
@@ -147,14 +153,12 @@ const Popup = () => {
   };
 
   const handleDeleteBookmark = async () => {
-    if (!isBookmarked) return;
+    if (!existBookmark) return;
 
     setLoading(true);
     try {
       await BookmarkService.removeBookmark(currentUrl);
-      setIsBookmarked(false);
-      setRemark('');
-      setUpdatedAt(undefined);
+      setExistBookmark(null);
       setOperationStatus('success');
     } catch (error) {
       console.error('Error deleting bookmark:', error);
@@ -176,19 +180,33 @@ const Popup = () => {
               {currentTitle || '无标题'}
             </h2>
             <p className="text-muted-foreground truncate text-xs dark:text-white/60">{currentUrl}</p>
-            {isBookmarked && updatedAt && (
-              <div className="mt-1 flex items-center gap-2">
-                <BookmarkCheck className="h-4 w-4 text-green-600 dark:text-green-400" />
-                <span className="text-xs text-green-600 dark:text-green-400">
-                  {new Date(updatedAt).toLocaleString()}
-                </span>
-                <button
-                  onClick={handleDeleteBookmark}
-                  disabled={loading}
-                  className="text-destructive hover:bg-destructive/10 ml-auto flex items-center space-x-1 rounded-md px-2 py-1 text-xs transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-900/30">
-                  <Trash2 className="h-3 w-3" />
-                  <span>删除</span>
-                </button>
+            {existBookmark && (
+              <div className="mt-1 space-y-2">
+                <div className="flex items-center gap-2">
+                  <BookmarkCheck className="h-4 w-4 text-green-600 dark:text-green-400" />
+                  <span className="text-xs text-green-600 dark:text-green-400">
+                    {new Date(existBookmark.updateTime).toLocaleString()}
+                  </span>
+                  <button
+                    onClick={handleDeleteBookmark}
+                    disabled={loading}
+                    className="text-destructive hover:bg-destructive/10 ml-auto flex items-center space-x-1 rounded-md px-2 py-1 text-xs transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-900/30">
+                    <Trash2 className="h-3 w-3" />
+                    <span>删除</span>
+                  </button>
+                </div>
+                {existBookmark.remark && (
+                  <div className="bg-muted/50 rounded-md p-2 dark:bg-[#232329]/50">
+                    <p className="text-muted-foreground text-xs leading-relaxed dark:text-white/70">
+                      <span className="font-medium">备注：</span>
+                    </p>
+                    <div className="max-h-16 overflow-y-auto">
+                      <p className="text-muted-foreground break-words text-xs leading-relaxed dark:text-white/70">
+                        {existBookmark.remark}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -283,7 +301,7 @@ const Popup = () => {
             className={cn(
               'ring-offset-background focus-visible:ring-ring inline-flex h-10 w-full items-center justify-center space-x-2 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
               // Base styles based on bookmark status
-              isBookmarked
+              existBookmark
                 ? 'border-input bg-background hover:bg-accent hover:text-accent-foreground border dark:border-[#232329] dark:bg-[#18181b] dark:text-white dark:hover:bg-[#232329]'
                 : 'bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-white dark:text-black',
               // Success state
@@ -315,14 +333,14 @@ const Popup = () => {
                 <XCircle className="h-4 w-4" />
                 <span>操作失败</span>
               </>
-            ) : isBookmarked ? (
+            ) : existBookmark ? (
               <>
                 <Save className="h-4 w-4" />
                 <span>更新书签</span>
               </>
             ) : (
               <>
-                <Bookmark className="h-4 w-4" />
+                <BookmarkIcon className="h-4 w-4" />
                 <span>保存为书签</span>
               </>
             )}
