@@ -74,7 +74,6 @@ const Popup = () => {
       const response = await chrome.tabs.sendMessage(tabId, {
         action: 'extractArticleImages',
       });
-
       if (response?.success && response.images) {
         console.log('收到文章图片:', response.images);
         setArticleImages(response.images);
@@ -89,6 +88,13 @@ const Popup = () => {
       }
     } catch (error) {
       console.error('图片提取失败:', error);
+
+      // 检查是否是连接错误
+      if (error.message && error.message.includes('Could not establish connection')) {
+        console.warn('Content script 未加载，可能需要刷新页面');
+        // 可以在这里设置一个状态来显示提示信息给用户
+      }
+
       setArticleImages([]);
     } finally {
       setImagesLoading(false);

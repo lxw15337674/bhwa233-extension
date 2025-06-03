@@ -3,6 +3,7 @@ import { ToggleButton } from '@extension/ui';
 import { useEffect } from 'react';
 
 export default function App() {
+  return null;
   useEffect(() => {
     console.log('[CEB] Content ui all loaded');
   }, []);
