@@ -80,7 +80,7 @@ const Options = () => {
                   'focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500',
                   isLight ? 'border-gray-300 bg-white text-gray-900' : 'border-gray-600 bg-gray-800 text-gray-100',
                 )}
-                placeholder="http://localhost:3000/api/bookmark"
+                placeholder="http://localhost:3000/"
                 disabled={isSaving}
               />
               <p className="mt-1 text-xs opacity-75">书签API的基础URL地址</p>

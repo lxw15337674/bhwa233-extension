@@ -14,7 +14,7 @@ const isValidUrl = (string: string): boolean => {
 const storage = createStorage<ExtensionConfigStateType>(
   'extension-config-storage-key',
   {
-    apiUrl: 'http://localhost:3000/api/bookmark',
+    apiUrl: 'http://localhost:3000/',
     apiKey: '987654321',
   },
   {
@@ -40,7 +40,7 @@ export const extensionConfigStorage: ExtensionConfigStorageType = {
   // 重置为默认配置
   resetToDefaults: async () => {
     await storage.set({
-      apiUrl: 'http://localhost:3000/api/bookmark',
+      apiUrl: 'http://localhost:3000/',
       apiKey: '987654321',
     });
   },
@@ -49,7 +49,7 @@ export const extensionConfigStorage: ExtensionConfigStorageType = {
   testConnection: async (): Promise<{ success: boolean; message: string }> => {
     try {
       const config = await storage.get();
-      const response = await fetch(`${config.apiUrl}`, {
+      const response = await fetch(`${config.apiUrl}/api/bookmark`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

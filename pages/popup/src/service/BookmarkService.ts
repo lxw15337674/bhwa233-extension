@@ -20,7 +20,7 @@ export class BookmarkService {
     console.log('开始获取单个书签:', url);
     try {
       const config = await getApiConfig();
-      const bookmark = await axios.get(`${config.API_URL}?url=${encodeURIComponent(url)}`, {
+      const bookmark = await axios.get(`${config.API_URL}/api/bookmark?url=${encodeURIComponent(url)}`, {
         headers: config.API_HEADERS,
       });
       if (bookmark.data) {
@@ -53,7 +53,7 @@ export class BookmarkService {
 
     try {
       const config = await getApiConfig();
-      const response = await axios.post(`${config.API_URL}`, newBookmark, {
+      const response = await axios.post(`${config.API_URL}/api/bookmark`, newBookmark, {
         headers: config.API_HEADERS,
       });
       console.log('API响应:', response.data);
@@ -70,7 +70,7 @@ export class BookmarkService {
       const config = await getApiConfig();
       // 将 URL 编码以便在请求路径中安全使用
       const encodedUrl = encodeURIComponent(url);
-      await axios.delete(`${config.API_URL}?url=${encodedUrl}`, {
+      await axios.delete(`${config.API_URL}/api/bookmark?url=${encodedUrl}`, {
         headers: config.API_HEADERS,
       });
     } catch (error) {
