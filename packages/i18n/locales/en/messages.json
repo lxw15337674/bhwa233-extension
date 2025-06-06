@@ -1,11 +1,11 @@
 {
   "extensionDescription": {
     "description": "Extension description",
-    "message": "BHWA233 Extension - A powerful browser extension"
+    "message": "bhwa233 Extension - A powerful browser extension"
   },
   "extensionName": {
     "description": "Extension name",
-    "message": "BHWA233 Extension"
+    "message": "bhwa233 Extension"
   },
   "toggleTheme": {
     "message": "Toggle theme"
