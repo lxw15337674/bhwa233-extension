@@ -88,7 +88,7 @@ export default config(
       'import-x/no-deprecated': 'error',
       'import-x/no-duplicates': ['error', { considerQueryString: true, 'prefer-inline': false }],
       'import-x/consistent-type-specifier-style': 'error',
-      'import-x/exports-last': 'error',
+      'import-x/exports-last': 'off',
       'import-x/first': 'error',
     },
     linterOptions: {

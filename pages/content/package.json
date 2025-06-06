@@ -21,9 +21,10 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@extension/env": "workspace:*",
     "@extension/shared": "workspace:*",
     "@extension/storage": "workspace:*",
-    "@extension/env": "workspace:*"
+    "@mozilla/readability": "^0.6.0"
   },
   "devDependencies": {
     "@extension/hmr": "workspace:*",
