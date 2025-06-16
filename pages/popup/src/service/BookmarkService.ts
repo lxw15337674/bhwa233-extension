@@ -6,7 +6,7 @@ export interface Bookmark {
   url: string;
   title: string | null;
   remark: string;
-  content?: string;
+  summary?: string | null;
   image?: string | null;
   createTime: string;
   updateTime: string;
@@ -49,8 +49,8 @@ export class BookmarkService {
       .replace(/\n\s*\n/g, '\n') // 将多个换行替换为单个换行
       .trim();
 
-    // 如果内容太长，截取前50000个字符作为摘要
-    const maxLength = 50000;
+    // 如果内容太长，截取前5000个字符作为摘要
+    const maxLength = 5000;
     if (processedContent.length > maxLength) {
       // 在合适的位置截断（尽量在句号、问号或感叹号后）
       const truncated = processedContent.substring(0, maxLength);
@@ -155,7 +155,7 @@ export class BookmarkService {
       remark: bookmarkData.remark || '',
       image: bookmarkData.image || null,
       // 使用提取的内容作为摘要，如果没有则为空
-      content: extractedContent ? this.processExtractedContent(extractedContent) : null,
+      summary: extractedContent ? this.processExtractedContent(extractedContent) : null,
     };
 
     console.log('准备发送书签数据到API:', {
@@ -163,7 +163,7 @@ export class BookmarkService {
       title: newBookmark.title,
       remark: newBookmark.remark,
       image: newBookmark.image,
-      contentLength: newBookmark.content?.length || 0,
+      summaryLength: newBookmark.summary?.length || 0,
     });
 
     try {
