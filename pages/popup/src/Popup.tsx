@@ -121,7 +121,6 @@ const Popup = () => {
       if (selectedImage) {
         console.log('开始上传图片到gallery:', selectedImage);
         setUploadingImage(true);
-
         try {
           const uploadedImageUrl = await uploadToGallery(selectedImage);
           if (uploadedImageUrl) {
