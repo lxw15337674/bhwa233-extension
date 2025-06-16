@@ -174,10 +174,10 @@ const Popup = () => {
   };
 
   return (
-    <div className="App bg-background flex-col p-6 dark:bg-black dark:text-white">
+    <div className="App bg-background flex-col p-2 dark:bg-black dark:text-white">
       <main className="flex flex-1 flex-col space-y-6">
         {/* Page Title & Bookmark Status */}
-        <div className="bg-card rounded-lg border p-4 shadow-sm transition-all duration-200 hover:shadow-md dark:border-[#232329] dark:bg-[#18181b] dark:text-white">
+        <div className="bg-card rounded-lg border p-2 shadow-sm transition-all duration-200 hover:shadow-md dark:border-[#232329] dark:bg-[#18181b] dark:text-white">
           <div className="flex flex-col gap-2">
             <h2
               className="text-foreground line-clamp-2 text-base font-semibold leading-tight dark:text-white"
@@ -215,15 +215,15 @@ const Popup = () => {
 
                 {/* 显示生成的标签 */}
                 {existBookmark.tags && existBookmark.tags.length > 0 && (
-                  <div className="bg-muted/50 rounded-md p-2 dark:bg-[#232329]/50">
-                    <p className="text-muted-foreground text-xs leading-relaxed dark:text-white/70">
-                      <span className="font-medium">智能标签：</span>
-                    </p>
-                    <div className="mt-1 flex flex-wrap gap-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground text-xs font-medium leading-relaxed dark:text-white/70">
+                      标签：
+                    </span>
+                    <div className="flex flex-nowrap gap-1 overflow-x-auto">
                       {existBookmark.tags.map(tag => (
                         <span
                           key={tag.id}
-                          className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                          className="inline-flex items-center whitespace-nowrap rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
                           {tag.name}
                         </span>
                       ))}
@@ -233,15 +233,10 @@ const Popup = () => {
 
                 {/* 显示AI生成的摘要 */}
                 {existBookmark.summary && (
-                  <div className="bg-muted/50 rounded-md p-2 dark:bg-[#232329]/50">
-                    <p className="text-muted-foreground text-xs leading-relaxed dark:text-white/70">
-                      <span className="font-medium">智能摘要：</span>
+                  <div className="max-h-20 overflow-y-auto">
+                    <p className="text-muted-foreground break-words text-left text-xs leading-relaxed dark:text-white/70">
+                      摘要：{existBookmark.summary}
                     </p>
-                    <div className="max-h-20 overflow-y-auto">
-                      <p className="text-muted-foreground break-words text-left text-xs leading-relaxed dark:text-white/70">
-                        {existBookmark.summary}
-                      </p>
-                    </div>
                   </div>
                 )}
               </div>
@@ -309,7 +304,7 @@ const Popup = () => {
               ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
+                <div className="py flex flex-col items-center justify-center text-center">
               <Image className="text-muted-foreground/50 h-12 w-12" />
               <p className="text-muted-foreground mt-2 text-sm">未找到文章图片</p>
               <p className="text-muted-foreground/70 text-xs">当前页面可能不包含合适的图片内容</p>
