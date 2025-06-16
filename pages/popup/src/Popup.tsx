@@ -212,6 +212,38 @@ const Popup = () => {
                     </div>
                   </div>
                 )}
+
+                {/* 显示生成的标签 */}
+                {existBookmark.tags && existBookmark.tags.length > 0 && (
+                  <div className="bg-muted/50 rounded-md p-2 dark:bg-[#232329]/50">
+                    <p className="text-muted-foreground text-xs leading-relaxed dark:text-white/70">
+                      <span className="font-medium">智能标签：</span>
+                    </p>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {existBookmark.tags.map(tag => (
+                        <span
+                          key={tag.id}
+                          className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                          {tag.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 显示AI生成的摘要 */}
+                {existBookmark.summary && (
+                  <div className="bg-muted/50 rounded-md p-2 dark:bg-[#232329]/50">
+                    <p className="text-muted-foreground text-xs leading-relaxed dark:text-white/70">
+                      <span className="font-medium">智能摘要：</span>
+                    </p>
+                    <div className="max-h-20 overflow-y-auto">
+                      <p className="text-muted-foreground break-words text-left text-xs leading-relaxed dark:text-white/70">
+                        {existBookmark.summary}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

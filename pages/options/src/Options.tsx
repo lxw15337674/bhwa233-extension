@@ -1,9 +1,8 @@
 import '@src/Options.css';
-import { t } from '@extension/i18n';
-import { PROJECT_URL_OBJECT, useStorage, withErrorBoundary, withSuspense } from '@extension/shared';
+import { useStorage, withErrorBoundary, withSuspense } from '@extension/shared';
 import { exampleThemeStorage, extensionConfigStorage } from '@extension/storage';
-import { cn, ErrorDisplay, LoadingSpinner, ToggleButton } from '@extension/ui';
-import { useState } from 'react';
+import { cn, ErrorDisplay, LoadingSpinner } from '@extension/ui';
+import { useState, useEffect } from 'react';
 
 const Options = () => {
   const { isLight } = useStorage(exampleThemeStorage);
@@ -12,8 +11,30 @@ const Options = () => {
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleConfigChange = async (field: keyof typeof config, value: string | boolean) => {
-    setIsSaving(true);
+  // 本地状态管理输入值，避免输入时失焦
+  const [localConfig, setLocalConfig] = useState({
+    apiUrl: '',
+    apiKey: '',
+  });
+
+  // 初始化本地状态
+  useEffect(() => {
+    setLocalConfig({
+      apiUrl: config.apiUrl || '',
+      apiKey: config.apiKey || '',
+    });
+  }, [config]);
+
+  // 处理输入变化
+  const handleInputChange = (field: keyof typeof localConfig, value: string) => {
+    setLocalConfig(prev => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  // 处理失焦时保存
+  const handleInputBlur = async (field: keyof typeof localConfig, value: string) => {
     try {
       await extensionConfigStorage.set(prev => ({
         ...prev,
@@ -21,8 +42,6 @@ const Options = () => {
       }));
     } catch (error) {
       console.error('保存配置失败:', error);
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -73,14 +92,14 @@ const Options = () => {
             <div>
               <input
                 type="url"
-                value={config.apiUrl}
-                onChange={e => handleConfigChange('apiUrl', e.target.value)}
+                value={localConfig.apiUrl}
+                onChange={e => handleInputChange('apiUrl', e.target.value)}
+                onBlur={e => handleInputBlur('apiUrl', e.target.value)}
                 className={cn(
                   'w-full rounded-md border px-3 py-2 text-sm',
                   'focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500',
                   isLight ? 'border-gray-300 bg-white text-gray-900' : 'border-gray-600 bg-gray-800 text-gray-100',
                 )}
-                placeholder="http://localhost:3000/"
                 disabled={isSaving}
               />
               <p className="mt-1 text-xs opacity-75">书签API的基础URL地址</p>
@@ -90,8 +109,9 @@ const Options = () => {
             <div>
               <input
                 type="password"
-                value={config.apiKey}
-                onChange={e => handleConfigChange('apiKey', e.target.value)}
+                value={localConfig.apiKey}
+                onChange={e => handleInputChange('apiKey', e.target.value)}
+                onBlur={e => handleInputBlur('apiKey', e.target.value)}
                 className={cn(
                   'w-full rounded-md border px-3 py-2 text-sm',
                   'focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500',

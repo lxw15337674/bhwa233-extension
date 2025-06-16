@@ -2,10 +2,10 @@ import { extensionConfigStorage } from '@extension/storage';
 
 // 默认配置（作为回退）
 const DEFAULT_CONFIG = {
-  API_URL: 'http://localhost:3000/api/bookmark',
+  API_URL: 'http://localhost:8080/api/bookmark',
   API_HEADERS: {
     'Content-Type': 'application/json',
-    'X-API-KEY': '987654321',
+    'x-api-key': '987654321',
     'Access-Control-Allow-Origin': '*',
   },
 };
@@ -18,7 +18,7 @@ export const getApiConfig = async () => {
       API_URL: config.apiUrl || DEFAULT_CONFIG.API_URL,
       API_HEADERS: {
         ...DEFAULT_CONFIG.API_HEADERS,
-        'X-API-KEY': config.apiKey || DEFAULT_CONFIG.API_HEADERS['X-API-KEY'],
+        'x-api-key': config.apiKey || DEFAULT_CONFIG.API_HEADERS['x-api-key'],
       },
     };
   } catch (error) {
@@ -36,7 +36,7 @@ export const getApiConfigSync = () => {
         API_URL: config.apiUrl || DEFAULT_CONFIG.API_URL,
         API_HEADERS: {
           ...DEFAULT_CONFIG.API_HEADERS,
-          'X-API-KEY': config.apiKey || DEFAULT_CONFIG.API_HEADERS['X-API-KEY'],
+          'x-api-key': config.apiKey || DEFAULT_CONFIG.API_HEADERS['x-api-key'],
         },
       };
     }

@@ -1,15 +1,28 @@
 import { getApiConfig } from './config';
 import axios from 'axios';
 
+export interface Tag {
+  id: string;
+  name: string;
+  remark: string | null;
+  createTime: string;
+  updateTime: string;
+  deletedAt: string | null;
+}
+
 export interface Bookmark {
   id: string;
   url: string;
   title: string | null;
   remark: string;
-  summary?: string | null;
+  content?: string | null;
   image?: string | null;
+  tags?: Tag[]; // 生成的标签对象数组
+  summary?: string | null; // AI生成的摘要
   createTime: string;
   updateTime: string;
+  deletedAt?: string | null;
+  loading?: boolean; // API返回数据中包含的字段
 }
 
 export type NewBookmark = Omit<Bookmark, 'id' | 'createTime' | 'updateTime'>;
@@ -115,7 +128,7 @@ export class BookmarkService {
     console.log('开始获取单个书签:', url);
     try {
       const config = await getApiConfig();
-      const bookmark = await axios.get(`${config.API_URL}/api/bookmark?url=${encodeURIComponent(url)}`, {
+      const bookmark = await axios.get(`${config.API_URL}/api/bookmark/search?url=${encodeURIComponent(url)}`, {
         headers: config.API_HEADERS,
       });
       if (bookmark.data) {
@@ -154,8 +167,8 @@ export class BookmarkService {
       title: bookmarkData.title,
       remark: bookmarkData.remark || '',
       image: bookmarkData.image || null,
-      // 使用提取的内容作为摘要，如果没有则为空
-      summary: extractedContent ? this.processExtractedContent(extractedContent) : null,
+      // 使用提取的内容作为content，如果没有则为空
+      content: extractedContent ? this.processExtractedContent(extractedContent) : null,
     };
 
     console.log('准备发送书签数据到API:', {
@@ -163,7 +176,7 @@ export class BookmarkService {
       title: newBookmark.title,
       remark: newBookmark.remark,
       image: newBookmark.image,
-      summaryLength: newBookmark.summary?.length || 0,
+      contentLength: newBookmark.content?.length || 0,
     });
 
     try {
@@ -185,7 +198,7 @@ export class BookmarkService {
       const config = await getApiConfig();
       // 将 URL 编码以便在请求路径中安全使用
       const encodedUrl = encodeURIComponent(url);
-      await axios.delete(`${config.API_URL}/api/bookmark?url=${encodedUrl}`, {
+      await axios.delete(`${config.API_URL}/api/bookmark/search?url=${encodedUrl}`, {
         headers: config.API_HEADERS,
       });
     } catch (error) {
