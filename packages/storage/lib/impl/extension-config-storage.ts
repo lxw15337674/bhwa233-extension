@@ -16,6 +16,8 @@ const storage = createStorage<ExtensionConfigStateType>(
   {
     apiUrl: 'http://localhost:8080',
     apiKey: '987654321',
+    memoApiUrl: 'http://localhost:3000',
+    memoApiKey: 'memox-api-2024',
   },
   {
     storageEnum: StorageEnum.Sync, // 使用Sync存储以支持跨设备同步
@@ -34,6 +36,12 @@ export const extensionConfigStorage: ExtensionConfigStorageType = {
     if (config.apiKey && config.apiKey.trim().length < 3) {
       return false;
     }
+    if (config.memoApiUrl && !isValidUrl(config.memoApiUrl)) {
+      return false;
+    }
+    if (config.memoApiKey && config.memoApiKey.trim().length < 3) {
+      return false;
+    }
     return true;
   },
 
@@ -42,10 +50,12 @@ export const extensionConfigStorage: ExtensionConfigStorageType = {
     await storage.set({
       apiUrl: 'http://localhost:8080',
       apiKey: '987654321',
+      memoApiUrl: 'http://localhost:3000',
+      memoApiKey: 'memox-api-2024',
     });
   },
 
-  // 测试API连接
+  // 测试书签API连接
   testConnection: async (): Promise<{ success: boolean; message: string }> => {
     try {
       const config = await storage.get();
@@ -58,12 +68,39 @@ export const extensionConfigStorage: ExtensionConfigStorageType = {
       });
 
       if (response.ok) {
-        return { success: true, message: 'API连接成功' };
+        return { success: true, message: '书签API连接成功' };
       } else {
-        return { success: false, message: `API连接失败: ${response.status}` };
+        return { success: false, message: `书签API连接失败: ${response.status}` };
       }
     } catch (error) {
-      return { success: false, message: `连接错误: ${error instanceof Error ? error.message : '未知错误'}` };
+      return { success: false, message: `书签API连接错误: ${error instanceof Error ? error.message : '未知错误'}` };
+    }
+  },
+
+  // 测试Memo API连接
+  testMemoConnection: async (): Promise<{ success: boolean; message: string }> => {
+    try {
+      const config = await storage.get();
+      if (!config.memoApiUrl || !config.memoApiKey) {
+        return { success: false, message: 'Memo API配置不完整' };
+      }
+
+      // 尝试获取memo列表作为健康检查
+      const response = await fetch(`${config.memoApiUrl}/api/health`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': config.memoApiKey,
+        },
+      });
+
+      if (response.ok) {
+        return { success: true, message: 'Memo API连接成功' };
+      } else {
+        return { success: false, message: `Memo API连接失败: ${response.status}` };
+      }
+    } catch (error) {
+      return { success: false, message: `Memo API连接错误: ${error instanceof Error ? error.message : '未知错误'}` };
     }
   },
 };

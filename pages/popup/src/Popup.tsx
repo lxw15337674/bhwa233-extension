@@ -1,5 +1,6 @@
 import '@src/Popup.css';
 import { BookmarkService } from './service/BookmarkService';
+import { MemoService } from './service/MemoService';
 import { uploadToGallery } from './service/upload';
 import { withErrorBoundary, withSuspense } from '@extension/shared';
 import { cn, ErrorDisplay, LoadingSpinner } from '@extension/ui';
@@ -16,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { Bookmark } from './service/BookmarkService';
+import type { CreateMemoRequest } from './service/MemoService';
 
 interface ArticleImage {
   src: string;
@@ -33,8 +35,10 @@ const Popup = () => {
   const [currentUrl, setCurrentUrl] = useState<string>('');
   const [currentTitle, setCurrentTitle] = useState<string>('');
   const [remark, setRemark] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(false);
-  const [operationStatus, setOperationStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [bookmarkLoading, setBookmarkLoading] = useState<boolean>(false);
+  const [memoLoading, setMemoLoading] = useState<boolean>(false);
+  const [bookmarkStatus, setBookmarkStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [memoStatus, setMemoStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [uploadingImage, setUploadingImage] = useState<boolean>(false);
   const [articleImages, setArticleImages] = useState<ArticleImage[]>([]);
   const [imagesLoading, setImagesLoading] = useState<boolean>(true);
@@ -90,7 +94,7 @@ const Popup = () => {
       console.error('图片提取失败:', error);
 
       // 检查是否是连接错误
-      if (error.message && error.message.includes('Could not establish connection')) {
+      if (error instanceof Error && error.message.includes('Could not establish connection')) {
         console.warn('Content script 未加载，可能需要刷新页面');
         // 可以在这里设置一个状态来显示提示信息给用户
       }
@@ -103,16 +107,24 @@ const Popup = () => {
 
   // Reset operation status after 2 seconds
   useEffect(() => {
-    if (operationStatus !== 'idle') {
-      const timer = setTimeout(() => setOperationStatus('idle'), 1000);
+    if (bookmarkStatus !== 'idle') {
+      const timer = setTimeout(() => setBookmarkStatus('idle'), 1000);
       return () => clearTimeout(timer);
     }
     return undefined;
-  }, [operationStatus]);
+  }, [bookmarkStatus]);
+
+  useEffect(() => {
+    if (memoStatus !== 'idle') {
+      const timer = setTimeout(() => setMemoStatus('idle'), 1000);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [memoStatus]);
 
   const handleSaveBookmark = async () => {
-    setLoading(true);
-    setOperationStatus('idle');
+    setBookmarkLoading(true);
+    setBookmarkStatus('idle');
 
     try {
       let finalImageUrl = selectedImage;
@@ -147,29 +159,78 @@ const Popup = () => {
 
       if (result) {
         setExistBookmark(result);
-        setOperationStatus('success');
+        setBookmarkStatus('success');
       }
     } catch (error) {
       console.error('Error saving bookmark:', error);
-      setOperationStatus('error');
+      setBookmarkStatus('error');
     } finally {
-      setLoading(false);
+      setBookmarkLoading(false);
     }
   };
 
   const handleDeleteBookmark = async () => {
     if (!existBookmark) return;
 
-    setLoading(true);
+    setBookmarkLoading(true);
     try {
       await BookmarkService.removeBookmark(currentUrl);
       setExistBookmark(null);
-      setOperationStatus('success');
+      setBookmarkStatus('success');
     } catch (error) {
       console.error('Error deleting bookmark:', error);
-      setOperationStatus('error');
+      setBookmarkStatus('error');
     } finally {
-      setLoading(false);
+      setBookmarkLoading(false);
+    }
+  };
+
+  const handleSaveMemo = async () => {
+    setMemoLoading(true);
+    setMemoStatus('idle');
+
+    try {
+      let finalImageUrl = selectedImage;
+
+      // 如果选择了图片，先上传到gallery服务器
+      if (selectedImage) {
+        console.log('开始上传图片到gallery:', selectedImage);
+        setUploadingImage(true);
+        try {
+          const uploadedImageUrl = await uploadToGallery(selectedImage);
+          if (uploadedImageUrl) {
+            console.log('图片上传成功:', uploadedImageUrl);
+            finalImageUrl = uploadedImageUrl;
+          } else {
+            console.warn('图片上传失败，使用原始URL');
+          }
+        } catch (uploadError) {
+          console.error('图片上传出错:', uploadError);
+        } finally {
+          setUploadingImage(false);
+        }
+      }
+
+      const memoData: CreateMemoRequest = {
+        content: remark,
+        link: {
+          url: currentUrl,
+          text: currentTitle,
+        },
+        images: finalImageUrl ? [finalImageUrl] : [],
+      };
+
+      const result = await MemoService.createMemo(memoData);
+
+      if (result) {
+        setMemoStatus('success');
+        console.log('Memo created successfully:', result);
+      }
+    } catch (error) {
+      console.error('Error saving memo:', error);
+      setMemoStatus('error');
+    } finally {
+      setMemoLoading(false);
     }
   };
 
@@ -184,7 +245,7 @@ const Popup = () => {
               title={currentTitle}>
               {currentTitle || '无标题'}
             </h2>
-            <p className="text-muted-foreground truncate text-xs dark:text-white/60">{currentUrl}</p>
+
             {existBookmark && (
               <div className="mt-1 space-y-2">
                 <div className="flex items-center gap-2">
@@ -194,7 +255,7 @@ const Popup = () => {
                   </span>
                   <button
                     onClick={handleDeleteBookmark}
-                    disabled={loading}
+                    disabled={bookmarkLoading}
                     className="text-destructive hover:bg-destructive/10 ml-auto flex items-center space-x-1 rounded-md px-2 py-1 text-xs transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-900/30">
                     <Trash2 className="h-3 w-3" />
                     <span>删除</span>
@@ -262,14 +323,14 @@ const Popup = () => {
               <span className="text-muted-foreground ml-2 text-sm">正在提取图片...</span>
             </div>
           ) : articleImages.length > 0 ? (
-            <div className="grid grid-cols-3 gap-2">
-              {articleImages.slice(0, 6).map((image, index) => (
+              <div className="flex gap-2">
+                {articleImages.slice(0, 3).map((image, index) => (
                 <button
                   key={index}
                   type="button"
                   onClick={() => setSelectedImage(image.src)}
                   className={cn(
-                    'bg-muted group relative aspect-square cursor-pointer overflow-hidden rounded-md border-2 transition-all duration-200',
+                    'bg-muted group relative aspect-square flex-1 cursor-pointer overflow-hidden rounded-md border-2 transition-all duration-200',
                     selectedImage === image.src
                       ? 'z-10 scale-105 transform border-blue-500 shadow-xl ring-4 ring-blue-500/30'
                       : 'border-transparent hover:scale-[1.02] hover:border-blue-300 hover:shadow-md',
@@ -304,7 +365,7 @@ const Popup = () => {
               ))}
             </div>
           ) : (
-                <div className="py flex flex-col items-center justify-center text-center">
+                <div className="flex flex-col items-center justify-center py-8 text-center">
               <Image className="text-muted-foreground/50 h-12 w-12" />
               <p className="text-muted-foreground mt-2 text-sm">未找到文章图片</p>
               <p className="text-muted-foreground/70 text-xs">当前页面可能不包含合适的图片内容</p>
@@ -318,52 +379,50 @@ const Popup = () => {
             id="remark"
             value={remark}
             onChange={e => setRemark(e.target.value)}
-            placeholder="在此输入备注信息..."
+            placeholder="如果是保存为书签，则是备注信息，如果是保存为笔记，则是笔记内容"
             rows={3}
             className="border-input bg-background text-foreground placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[80px] w-full resize-none rounded-md border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#18181b] dark:text-white dark:placeholder:text-white/40"
-            disabled={loading}
+            disabled={bookmarkLoading || memoLoading}
           />
         </div>
 
-        {/* Action Button */}
-        <div>
+        {/* Action Buttons */}
+        <div className="flex gap-3">
+          {/* 保存书签按钮 */}
           <button
             onClick={handleSaveBookmark}
-            disabled={loading}
+            disabled={bookmarkLoading || memoLoading}
             className={cn(
-              'ring-offset-background focus-visible:ring-ring inline-flex h-10 w-full items-center justify-center space-x-2 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
-              // Base styles based on bookmark status
+              'ring-offset-background focus-visible:ring-ring inline-flex h-10 flex-1 items-center justify-center space-x-2 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
               existBookmark
                 ? 'border-input bg-background hover:bg-accent hover:text-accent-foreground border dark:border-[#232329] dark:bg-[#18181b] dark:text-white dark:hover:bg-[#232329]'
-                : 'bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-white dark:text-black',
-              // Success state
-              operationStatus === 'success' && !loading && 'bg-green-600 text-white hover:bg-green-700',
-              // Error state
-              operationStatus === 'error' &&
-                !loading &&
-                'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+                : 'bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-700',
+              bookmarkStatus === 'success' && !bookmarkLoading && 'bg-green-600 text-white hover:bg-green-700',
+              bookmarkStatus === 'error' &&
+                !bookmarkLoading &&
+              'bg-destructive text-destructive-foreground hover:bg-destructive/90',
             )}>
-            {loading ? (
+            {bookmarkLoading ? (
               uploadingImage ? (
                 <>
                   <Upload className="h-4 w-4 animate-pulse" />
-                  <span>正在上传图片...</span>
+                  <span>上传图片中...</span>
                 </>
               ) : (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>保存中...</span>
+                    <span>保存中...</span>
                 </>
               )
-            ) : operationStatus === 'success' ? (
+            ) : bookmarkStatus === 'success' ? (
               <>
                 <CheckCircle className="h-4 w-4" />
-                <span>操作成功</span>
+                  <span>保存成功</span>
               </>
-            ) : operationStatus === 'error' ? (
+            ) : bookmarkStatus === 'error' ? (
               <>
                 <XCircle className="h-4 w-4" />
-                <span>操作失败</span>
+                    <span>保存失败</span>
               </>
             ) : existBookmark ? (
               <>
@@ -373,7 +432,56 @@ const Popup = () => {
             ) : (
               <>
                 <BookmarkIcon className="h-4 w-4" />
-                <span>保存为书签</span>
+                <span>保存书签</span>
+              </>
+            )}
+          </button>
+
+          {/* 保存笔记按钮 */}
+          <button
+            onClick={handleSaveMemo}
+            disabled={bookmarkLoading || memoLoading || !remark.trim()}
+            className={cn(
+              'ring-offset-background focus-visible:ring-ring inline-flex h-10 flex-1 items-center justify-center space-x-2 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+              !remark.trim()
+                ? 'cursor-not-allowed bg-gray-400 text-gray-200 dark:bg-gray-600 dark:text-gray-400'
+                : 'bg-green-600 text-white hover:bg-green-700 dark:bg-green-600 dark:text-white dark:hover:bg-green-700',
+              memoStatus === 'success' && !memoLoading && 'bg-green-600 text-white hover:bg-green-700',
+              memoStatus === 'error' &&
+                !memoLoading &&
+              'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+            )}>
+            {memoLoading ? (
+              uploadingImage ? (
+                <>
+                  <Upload className="h-4 w-4 animate-pulse" />
+                  <span>上传图片中...</span>
+                </>
+              ) : (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>保存中...</span>
+                </>
+              )
+            ) : memoStatus === 'success' ? (
+              <>
+                <CheckCircle className="h-4 w-4" />
+                  <span>保存成功</span>
+              </>
+            ) : memoStatus === 'error' ? (
+              <>
+                <XCircle className="h-4 w-4" />
+                    <span>保存失败</span>
+                  </>
+                ) : !remark.trim() ? (
+                  <>
+                    <BookmarkIcon className="h-4 w-4" />
+                    <span>请输入笔记</span>
+              </>
+            ) : (
+              <>
+                        <BookmarkIcon className="h-4 w-4" />
+                        <span>保存笔记</span>
               </>
             )}
           </button>

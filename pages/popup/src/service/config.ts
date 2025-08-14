@@ -8,6 +8,8 @@ const DEFAULT_CONFIG = {
     'x-api-key': '987654321',
     'Access-Control-Allow-Origin': '*',
   },
+  MEMO_API_URL: 'http://localhost:3000',
+  MEMO_API_KEY: 'memox-api-2024',
 };
 
 // 获取当前配置的函数
@@ -20,6 +22,8 @@ export const getApiConfig = async () => {
         ...DEFAULT_CONFIG.API_HEADERS,
         'x-api-key': config.apiKey || DEFAULT_CONFIG.API_HEADERS['x-api-key'],
       },
+      MEMO_API_URL: config.memoApiUrl || DEFAULT_CONFIG.MEMO_API_URL,
+      MEMO_API_KEY: config.memoApiKey || DEFAULT_CONFIG.MEMO_API_KEY,
     };
   } catch (error) {
     console.error('Failed to load extension config, using defaults:', error);
@@ -38,6 +42,8 @@ export const getApiConfigSync = () => {
           ...DEFAULT_CONFIG.API_HEADERS,
           'x-api-key': config.apiKey || DEFAULT_CONFIG.API_HEADERS['x-api-key'],
         },
+        MEMO_API_URL: config.memoApiUrl || DEFAULT_CONFIG.MEMO_API_URL,
+        MEMO_API_KEY: config.memoApiKey || DEFAULT_CONFIG.MEMO_API_KEY,
       };
     }
   } catch (error) {
@@ -46,6 +52,4 @@ export const getApiConfigSync = () => {
   return DEFAULT_CONFIG;
 };
 
-// 为了向后兼容，保留旧的API_CONFIG导出（但标记为已弃用）
-/** @deprecated 请使用 getApiConfig() 或 getApiConfigSync() */
 export const API_CONFIG = DEFAULT_CONFIG;

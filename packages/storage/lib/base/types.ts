@@ -56,10 +56,13 @@ export type ThemeStorageType = BaseStorageType<ThemeStateType> & {
 export interface ExtensionConfigStateType {
   apiUrl: string;
   apiKey: string;
+  memoApiUrl?: string;
+  memoApiKey?: string;
 }
 
 export type ExtensionConfigStorageType = BaseStorageType<ExtensionConfigStateType> & {
   validateConfig: (config: Partial<ExtensionConfigStateType>) => boolean;
   resetToDefaults: () => Promise<void>;
   testConnection: () => Promise<{ success: boolean; message: string }>;
+  testMemoConnection: () => Promise<{ success: boolean; message: string }>;
 };
