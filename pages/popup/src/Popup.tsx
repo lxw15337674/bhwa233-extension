@@ -388,56 +388,6 @@ const Popup = () => {
 
         {/* Action Buttons */}
         <div className="flex gap-3">
-          {/* 保存书签按钮 */}
-          <button
-            onClick={handleSaveBookmark}
-            disabled={bookmarkLoading || memoLoading}
-            className={cn(
-              'ring-offset-background focus-visible:ring-ring inline-flex h-10 flex-1 items-center justify-center space-x-2 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
-              existBookmark
-                ? 'border-input bg-background hover:bg-accent hover:text-accent-foreground border dark:border-[#232329] dark:bg-[#18181b] dark:text-white dark:hover:bg-[#232329]'
-                : 'bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-700',
-              bookmarkStatus === 'success' && !bookmarkLoading && 'bg-green-600 text-white hover:bg-green-700',
-              bookmarkStatus === 'error' &&
-                !bookmarkLoading &&
-              'bg-destructive text-destructive-foreground hover:bg-destructive/90',
-            )}>
-            {bookmarkLoading ? (
-              uploadingImage ? (
-                <>
-                  <Upload className="h-4 w-4 animate-pulse" />
-                  <span>上传图片中...</span>
-                </>
-              ) : (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>保存中...</span>
-                </>
-              )
-            ) : bookmarkStatus === 'success' ? (
-              <>
-                <CheckCircle className="h-4 w-4" />
-                  <span>保存成功</span>
-              </>
-            ) : bookmarkStatus === 'error' ? (
-              <>
-                <XCircle className="h-4 w-4" />
-                    <span>保存失败</span>
-              </>
-            ) : existBookmark ? (
-              <>
-                <Save className="h-4 w-4" />
-                <span>更新书签</span>
-              </>
-            ) : (
-              <>
-                <BookmarkIcon className="h-4 w-4" />
-                <span>保存书签</span>
-              </>
-            )}
-          </button>
-
-          {/* 保存笔记按钮 */}
           <button
             onClick={handleSaveMemo}
             disabled={bookmarkLoading || memoLoading || !remark.trim()}
@@ -448,7 +398,7 @@ const Popup = () => {
                 : 'bg-green-600 text-white hover:bg-green-700 dark:bg-green-600 dark:text-white dark:hover:bg-green-700',
               memoStatus === 'success' && !memoLoading && 'bg-green-600 text-white hover:bg-green-700',
               memoStatus === 'error' &&
-                !memoLoading &&
+              !memoLoading &&
               'bg-destructive text-destructive-foreground hover:bg-destructive/90',
             )}>
             {memoLoading ? (
@@ -468,20 +418,67 @@ const Popup = () => {
                 <CheckCircle className="h-4 w-4" />
                   <span>保存成功</span>
               </>
-            ) : memoStatus === 'error' ? (
+              ) : memoStatus === 'error' ? (
+              <>
+                <XCircle className="h-4 w-4" />
+                    <span>保存失败</span>
+              </>
+                ) : !remark.trim() ? (
+              <>
+                      <BookmarkIcon className="h-4 w-4" />
+                      <span>输入笔记</span>
+              </>
+            ) : (
+              <>
+                <BookmarkIcon className="h-4 w-4" />
+                        <span>保存笔记</span>
+              </>
+            )}
+          </button>
+          <button
+            onClick={handleSaveBookmark}
+            disabled={bookmarkLoading || memoLoading}
+            className={cn(
+              'ring-offset-background focus-visible:ring-ring inline-flex h-10 flex-1 items-center justify-center space-x-2 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+              existBookmark
+                ? 'border-input bg-background hover:bg-accent hover:text-accent-foreground border dark:border-[#232329] dark:bg-[#18181b] dark:text-white dark:hover:bg-[#232329]'
+                : 'bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-700',
+              bookmarkStatus === 'success' && !bookmarkLoading && 'bg-green-600 text-white hover:bg-green-700',
+              bookmarkStatus === 'error' &&
+              !bookmarkLoading &&
+              'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+            )}>
+            {bookmarkLoading ? (
+              uploadingImage ? (
+                <>
+                  <Upload className="h-4 w-4 animate-pulse" />
+                  <span>上传图片中...</span>
+                </>
+              ) : (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>保存中...</span>
+                </>
+              )
+            ) : bookmarkStatus === 'success' ? (
+              <>
+                <CheckCircle className="h-4 w-4" />
+                  <span>保存成功</span>
+              </>
+              ) : bookmarkStatus === 'error' ? (
               <>
                 <XCircle className="h-4 w-4" />
                     <span>保存失败</span>
                   </>
-                ) : !remark.trim() ? (
+                ) : existBookmark ? (
                   <>
-                    <BookmarkIcon className="h-4 w-4" />
-                    <span>请输入笔记</span>
+                      <Save className="h-4 w-4" />
+                      <span>更新书签</span>
               </>
             ) : (
               <>
                         <BookmarkIcon className="h-4 w-4" />
-                        <span>保存笔记</span>
+                        <span>保存书签</span>
               </>
             )}
           </button>
