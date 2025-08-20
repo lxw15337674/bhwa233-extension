@@ -31,7 +31,7 @@ const manifest = {
   version: packageJson.version,
   description: '__MSG_extensionDescription__',
   host_permissions: ['http://*/*', 'https://*/*'],
-  permissions: ['storage', 'scripting', 'tabs'],
+  permissions: ['storage', 'scripting', 'tabs', 'contextMenus', 'notifications'],
   options_page: 'options/index.html',
   background: {
     service_worker: 'background.js',
@@ -59,6 +59,15 @@ const manifest = {
     },
   ],
   devtools_page: 'devtools/index.html',
+  commands: {
+    'save-selection-memo': {
+      suggested_key: {
+        default: 'Alt+S',
+        mac: 'Alt+S',
+      },
+      description: '保存选中内容为笔记',
+    },
+  },
   web_accessible_resources: [
     {
       resources: ['*.js', '*.css', '*.svg', 'icon-128.png', 'icon-34.png'],

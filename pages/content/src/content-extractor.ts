@@ -11,7 +11,7 @@ interface ExtractedContent {
 
 // 消息类型定义
 interface MessageRequest {
-  action: 'EXTRACT_CONTENT';
+  action: 'EXTRACT_CONTENT' | 'getSelectedText';
   data?: unknown;
 }
 
@@ -74,38 +74,52 @@ class ContentExtractor {
 }
 
 // 监听来自popup的消息
-chrome.runtime.onMessage.addListener(
-  (request: MessageRequest, sender, sendResponse: (response: MessageResponse) => void) => {
-    console.log('Content script收到消息:', request);
+chrome.runtime.onMessage.addListener((request: MessageRequest, sender, sendResponse) => {
+  console.log('收到消息:', request);
 
-    if (request.action === 'EXTRACT_CONTENT') {
-      try {
-        const extractedContent = ContentExtractor.extractContent();
+  if (request.action === 'EXTRACT_CONTENT') {
+    try {
+      const extractedContent = ContentExtractor.extractContent();
 
-        if (extractedContent) {
-          sendResponse({
-            success: true,
-            data: extractedContent,
-          });
-        } else {
-          sendResponse({
-            success: false,
-            error: '无法提取页面内容',
-          });
-        }
-      } catch (error) {
-        console.error('处理内容提取请求时出错:', error);
+      if (extractedContent) {
+        sendResponse({
+          success: true,
+          data: extractedContent,
+        });
+      } else {
         sendResponse({
           success: false,
-          error: error instanceof Error ? error.message : '未知错误',
+          error: '无法提取页面内容',
         });
       }
+    } catch (error) {
+      console.error('处理内容提取请求时出错:', error);
+      sendResponse({
+        success: false,
+        error: error instanceof Error ? error.message : '未知错误',
+      });
     }
+  } else if (request.action === 'getSelectedText') {
+    try {
+      const selection = window.getSelection();
+      const selectedText = selection ? selection.toString().trim() : '';
 
-    // 返回true表示我们会异步发送响应
-    return true;
-  },
-);
+      sendResponse({
+        success: true,
+        selectedText,
+      });
+    } catch (error) {
+      console.error('获取选中文本时出错:', error);
+      sendResponse({
+        success: false,
+        error: error instanceof Error ? error.message : '未知错误',
+      });
+    }
+  }
+
+  // 返回true表示我们会异步发送响应
+  return true;
+});
 
 console.log('内容提取器已加载');
 
