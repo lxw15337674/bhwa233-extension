@@ -72,23 +72,26 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     try {
       await createMemo(info.selectionText, info.pageUrl || tab.url || '', tab.title || '');
 
-      // 显示成功通知
-      chrome.notifications.create({
-        type: 'basic',
-        iconUrl: 'icon-128.png',
-        title: '笔记已保存',
-        message: '选中内容已成功保存为笔记',
-      });
+      // 发送成功消息到 content script
+      if (tab?.id) {
+        chrome.tabs.sendMessage(tab.id, {
+          action: 'showToast',
+          type: 'success',
+          message: '笔记已保存',
+        });
+      }
+      console.log('笔记保存成功');
     } catch (error) {
       console.error('Error saving memo:', error);
 
-      // 显示失败通知
-      chrome.notifications.create({
-        type: 'basic',
-        iconUrl: 'icon-128.png',
-        title: '保存失败',
-        message: '笔记保存失败，请重试',
-      });
+      // 发送失败消息到 content script
+      if (tab?.id) {
+        chrome.tabs.sendMessage(tab.id, {
+          action: 'showToast',
+          type: 'error',
+          message: '笔记保存失败',
+        });
+      }
     }
   }
 });
@@ -107,34 +110,37 @@ chrome.commands.onCommand.addListener(async command => {
       });
 
       if (result?.selectedText?.trim()) {
+        console.log('Selected text:', result.selectedText);
         await createMemo(result.selectedText, tab.url || '', tab.title || '');
 
-        // 显示成功通知
-        chrome.notifications.create({
-          type: 'basic',
-          iconUrl: 'icon-128.png',
-          title: '笔记已保存',
-          message: '选中内容已成功保存为笔记',
+        // 发送成功消息到 content script
+        chrome.tabs.sendMessage(tab.id, {
+          action: 'showToast',
+          type: 'success',
+          message: '笔记已保存',
         });
+        console.log('快捷键保存成功');
       } else {
-        // 显示提示通知
-        chrome.notifications.create({
-          type: 'basic',
-          iconUrl: 'icon-128.png',
-          title: '未选中文本',
-          message: '请先选中要保存的文本内容',
+        console.log('No text selected');
+        // 发送提示消息到 content script
+        chrome.tabs.sendMessage(tab.id, {
+          action: 'showToast',
+          type: 'warning',
+          message: '请先选中文本',
         });
       }
     } catch (error) {
       console.error('Error saving memo via shortcut:', error);
 
-      // 显示失败通知
-      chrome.notifications.create({
-        type: 'basic',
-        iconUrl: 'icon-128.png',
-        title: '保存失败',
-        message: '笔记保存失败，请重试',
-      });
+      // 发送失败消息到 content script
+      const [currentTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (currentTab?.id) {
+        chrome.tabs.sendMessage(currentTab.id, {
+          action: 'showToast',
+          type: 'error',
+          message: '保存失败',
+        });
+      }
     }
   }
 });

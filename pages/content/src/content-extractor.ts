@@ -11,7 +11,9 @@ interface ExtractedContent {
 
 // 消息类型定义
 interface MessageRequest {
-  action: 'EXTRACT_CONTENT' | 'getSelectedText';
+  action: 'EXTRACT_CONTENT' | 'getSelectedText' | 'showToast';
+  type?: 'success' | 'error' | 'warning';
+  message?: string;
   data?: unknown;
 }
 
@@ -73,6 +75,87 @@ class ContentExtractor {
   }
 }
 
+// Toast 通知类
+class ToastNotification {
+  private static createToast(type: 'success' | 'error' | 'warning', message: string): void {
+    // 移除已存在的 toast
+    const existingToast = document.getElementById('ext-memo-toast');
+    if (existingToast) {
+      existingToast.remove();
+    }
+
+    // 创建 toast 元素
+    const toast = document.createElement('div');
+    toast.id = 'ext-memo-toast';
+
+    // 样式
+    const colors = {
+      success: { bg: '#4CAF50', icon: '✓' },
+      error: { bg: '#F44336', icon: '✗' },
+      warning: { bg: '#FF9800', icon: '⚠' },
+    };
+
+    const color = colors[type];
+
+    toast.innerHTML = `
+      <div style="
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: ${color.bg};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 14px;
+        font-weight: 500;
+        z-index: 999999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 200px;
+        max-width: 400px;
+        transform: translateX(100%);
+        transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        opacity: 0;
+      ">
+        <span style="font-size: 16px;">${color.icon}</span>
+        <span>${message}</span>
+      </div>
+    `;
+
+    // 添加到页面
+    document.body.appendChild(toast);
+
+    // 动画显示
+    requestAnimationFrame(() => {
+      const toastElement = toast.querySelector('div') as HTMLElement;
+      toastElement.style.transform = 'translateX(0)';
+      toastElement.style.opacity = '1';
+    });
+
+    // 3秒后自动移除
+    setTimeout(() => {
+      if (toast && toast.parentNode) {
+        const toastElement = toast.querySelector('div') as HTMLElement;
+        toastElement.style.transform = 'translateX(100%)';
+        toastElement.style.opacity = '0';
+
+        setTimeout(() => {
+          if (toast && toast.parentNode) {
+            toast.remove();
+          }
+        }, 300);
+      }
+    }, 3000);
+  }
+
+  static show(type: 'success' | 'error' | 'warning', message: string): void {
+    ToastNotification.createToast(type, message);
+  }
+}
+
 // 监听来自popup的消息
 chrome.runtime.onMessage.addListener((request: MessageRequest, sender, sendResponse) => {
   console.log('收到消息:', request);
@@ -110,6 +193,21 @@ chrome.runtime.onMessage.addListener((request: MessageRequest, sender, sendRespo
       });
     } catch (error) {
       console.error('获取选中文本时出错:', error);
+      sendResponse({
+        success: false,
+        error: error instanceof Error ? error.message : '未知错误',
+      });
+    }
+  } else if (request.action === 'showToast') {
+    try {
+      if (request.type && request.message) {
+        ToastNotification.show(request.type, request.message);
+        sendResponse({ success: true });
+      } else {
+        sendResponse({ success: false, error: '缺少 type 或 message 参数' });
+      }
+    } catch (error) {
+      console.error('显示 Toast 时出错:', error);
       sendResponse({
         success: false,
         error: error instanceof Error ? error.message : '未知错误',
