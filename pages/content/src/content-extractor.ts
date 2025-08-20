@@ -117,7 +117,7 @@ class ToastNotification {
         min-width: 200px;
         max-width: 400px;
         transform: translateX(100%);
-        transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
         opacity: 0;
       ">
         <span style="font-size: 16px;">${color.icon}</span>
